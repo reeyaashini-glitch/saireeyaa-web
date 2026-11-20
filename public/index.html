@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sai Reeyaa Consultancy</title>
+<link rel="icon" href="/logo.png">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div id="login" class="login hidden">
+  <form class="login-card" onsubmit="A.login(event)">
+    <img src="/logo.png" alt="SRC" class="login-logo">
+    <h1>Sai Reeyaa Consultancy</h1>
+    <p class="muted">Workflow Manager &mdash; sign in</p>
+    <label>Username<input id="lu" autocomplete="username" required autofocus></label>
+    <label>Password<input id="lp" type="password" autocomplete="current-password" required></label>
+    <div id="lerr" class="err"></div>
+    <button class="btn primary" type="submit">Sign in</button>
+  </form>
+</div>
+<div id="app" class="hidden">
+  <header class="topbar">
+    <button class="menu-btn" onclick="A.toggleNav()" aria-label="Menu">&#9776;</button>
+    <div class="brand"><img src="/logo.png" alt=""><span>Sai Reeyaa Consultancy</span></div>
+    <div class="who"><span id="whoami"></span><button class="btn small" onclick="A.go('#/account')">Account</button><button class="btn small" onclick="A.logout()">Sign out</button></div>
+  </header>
+  <nav id="nav" class="nav"></nav>
+  <main id="main" class="main"></main>
+</div>
+<div id="modals"></div>
+<div id="toast" class="toast"></div>
+<script src="/core.js"></script>
+<script src="/views-a.js"></script>
+<script src="/views-b.js"></script>
+<script src="/views-c.js"></script>
+<script>A.start();</script>
+</body>
+</html>
