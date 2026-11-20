@@ -9,6 +9,10 @@ const storage = require('./storage');
 
 const app = express();
 app.set('trust proxy', 1);
+// Make sure the database is ready before any request (needed when hosted serverless, e.g. Vercel).
+app.use(async (req, res, next) => {
+  try { await init(); next(); } catch (e) { console.error('Startup failed:', e); res.status(500).type('text/plain').send('Database problem: ' + e.message); }
+});
 app.use(express.json({ limit: '2mb' }));
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -464,4 +468,8 @@ async function start() {
   app.listen(port, () => console.log('Sai Reeyaa web app running on port ' + port));
 }
 if (require.main === module) start().catch((e) => { console.error('Startup failed:', e); process.exit(1); });
-module.exports = { app, start, init };
+// Export the Express app itself (a function) so hosts like Vercel can run this file directly.
+module.exports = app;
+app.app = app;
+app.start = start;
+app.initDb = init;
