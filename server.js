@@ -450,8 +450,10 @@ app.use((err, req, res, next) => {
 });
 
 const port = process.env.PORT || 3000;
+let ready;
+const init = () => (ready = ready || db.ensureSchemaFast().catch((e) => { ready = null; throw e; }));
 async function start() {
-  await db.ensureSchema();
+  await init();
   if (!(await db.q('SELECT 1 FROM Users LIMIT 1')).length) {
     const pw = process.env.INITIAL_ADMIN_PASSWORD;
     if (pw) {
@@ -462,4 +464,4 @@ async function start() {
   app.listen(port, () => console.log('Sai Reeyaa web app running on port ' + port));
 }
 if (require.main === module) start().catch((e) => { console.error('Startup failed:', e); process.exit(1); });
-module.exports = { app, start };
+module.exports = { app, start, init };

@@ -5,6 +5,7 @@ const { createClient } = require('@libsql/client');
 const { tables, SQL_TYPE } = require('./schema');
 
 const TZ = process.env.TIMEZONE || 'Asia/Colombo';
+if (process.env.VERCEL && !(process.env.TURSO_URL || process.env.TURSO_DATABASE_URL)) throw new Error('TURSO_URL is not set. Add TURSO_URL and TURSO_TOKEN under Vercel > Settings > Environment Variables, then redeploy.');
 const client = createClient({
   url: process.env.TURSO_URL || process.env.TURSO_DATABASE_URL || 'file:./data/local.db',
   authToken: process.env.TURSO_TOKEN || process.env.TURSO_AUTH_TOKEN || undefined,
@@ -22,6 +23,14 @@ const dateIso = (v) => (v === null || v === undefined || v === '' ? null : /^\d{
 
 async function q(sql, args = []) { return (await client.execute({ sql, args })).rows.map((r) => ({ ...r })); }
 async function run(sql, args = []) { return client.execute({ sql, args }); }
+
+const SCHEMA_V = '1';
+// Fast path for serverless cold starts: one query when the tables are already up to date.
+async function ensureSchemaFast() {
+  try { const r = await q("SELECT Value FROM SharedSettings WHERE Id='web.schema.v'"); if (r.length && r[0].Value === SCHEMA_V) return; } catch { /* table missing: do the full setup */ }
+  await ensureSchema();
+  await save('SharedSettings', { Id: 'web.schema.v', Value: SCHEMA_V });
+}
 
 async function ensureSchema() {
   const stmts = [];
@@ -78,4 +87,4 @@ async function getSetting(key, def = '') {
 }
 async function setSetting(key, value) { await save('SharedSettings', { Id: key, Value: value }); }
 
-module.exports = { client, q, run, save, remove, audit, newId, stamp, nowLocal, today, dateIso, ensureSchema, getSetting, setSetting, coerce, localParts };
+module.exports = { client, q, run, save, remove, audit, newId, stamp, nowLocal, today, dateIso, ensureSchema, ensureSchemaFast, getSetting, setSetting, coerce, localParts };
